@@ -1,0 +1,22 @@
+node_modules/
+dist/
+
+# env files (do not commit secrets)
+.env
+.env.*
+!.env.example
+!.env.example.*
+
+# logs
+*.log
+
+# macOS
+.DS_Store
+
+# build outputs
+client/dist/
+server/dist/
+
+# tooling
+.vscode/
+.idea/
