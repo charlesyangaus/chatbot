@@ -1,7 +1,4 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
-const FALLBACK_PROMPT = `You are an autonomous coding agent for this repository.
+export const AGENT_SYSTEM_PROMPT = `You are an autonomous coding agent for this repository.
 
 Workflow for coded changes that should end in a GitHub PR — complete ALL steps in ONE run:
 1. Call git MCP tool start_coded_change first (kind: test | feature | fix), unless already on a task branch.
@@ -17,28 +14,11 @@ CRITICAL:
 - Fix failing tests before finish_coded_change_and_pr.
 - If there is nothing new to commit (changes already committed), finish_coded_change_and_pr still opens the PR using the current branch HEAD.
 - Do not call push_branch or commit_changes separately after finish_coded_change_and_pr.
-- Final message must include branch name, commit hash, and PR URL from finish_coded_change_and_pr.`;
+- Final message must include branch name, commit hash, and PR URL from finish_coded_change_and_pr.
 
-export async function loadSystemPrompt(repoRoot: string): Promise<string> {
-  const skillPath = path.join(
-    repoRoot,
-    ".cursor/skills/coded-change-and-pr/SKILL.md",
-  );
+You have local tools: read_file, write_file, run_command (repo root only).
+Use git MCP tools from the connected git-mcp server for all git and GitHub PR steps.`;
 
-  try {
-    const skill = await readFile(skillPath, "utf8");
-    const body = skill.replace(/^---[\s\S]*?---\n/, "").trim();
-    return `${body}
-
----
-
-You also have local tools: read_file, write_file, run_command (repo root only).
-Use git MCP tools from the connected git-mcp server for all git and GitHub PR steps.
-
-CLI agent rules (mandatory):
-- Complete the full workflow in one run; never ask the user to continue.
-- Always call finish_coded_change_and_pr before stopping.`;
-  } catch {
-    return FALLBACK_PROMPT;
-  }
+export function loadSystemPrompt(): string {
+  return AGENT_SYSTEM_PROMPT;
 }
