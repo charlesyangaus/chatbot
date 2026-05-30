@@ -153,10 +153,10 @@ export function registerGitTools(server: McpServer): void {
     async (args) => {
       try {
         const result = await commitChanges(args);
-        return successResult(
-          `Committed ${result.commitHash.slice(0, 7)} on "${result.branch}".`,
-          result,
-        );
+        const message = result.committed
+          ? `Committed ${result.commitHash.slice(0, 7)} on "${result.branch}".`
+          : `No changes to commit on "${result.branch}" (HEAD ${result.commitHash.slice(0, 7)}).`;
+        return successResult(message, result);
       } catch (error) {
         return errorResult(error);
       }

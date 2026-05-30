@@ -14,10 +14,8 @@ export type CommitChangesResult = {
   repoPath: string;
 };
 
-export async function hasUncommittedChanges(repoPath?: string): Promise<boolean> {
-  const cwd = resolveRepoPath(repoPath);
-  await assertGitRepo(cwd);
-  const status = await git(["status", "--porcelain"], cwd);
+async function hasStagedChanges(repoPath: string): Promise<boolean> {
+  const status = await git(["status", "--porcelain"], repoPath);
   return status.length > 0;
 }
 
@@ -32,8 +30,7 @@ export async function commitChanges(
 
   await git(["add", "--", ...files], repoPath);
 
-  const status = await git(["status", "--porcelain"], repoPath);
-  if (!status) {
+  if (!(await hasStagedChanges(repoPath))) {
     const commitHash = await git(["rev-parse", "HEAD"], repoPath);
     return {
       branch,
