@@ -32,7 +32,7 @@ export async function runAgent(requirement: string, repoRoot: string): Promise<v
     logStatus(`Connected (${mcpTools.length} git tools)`);
 
     const tools = [...mcpToolsForOpenAI(mcpTools), ...localToolsForOpenAI()];
-    const systemPrompt = await loadSystemPrompt(repoRoot);
+    const systemPrompt = loadSystemPrompt();
 
     const mcpToolNames = new Set(mcpTools.map((t) => t.name));
 
