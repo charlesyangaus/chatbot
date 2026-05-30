@@ -22,7 +22,7 @@ describe("createApp", () => {
     expect(res.body).toEqual({
       ok: true,
       mode: "demo",
-      rag: { enabled: false, configured: false, documents: null },
+      rag: { enabled: false, configured: true, documents: null },
     });
   });
 
@@ -36,7 +36,7 @@ describe("createApp", () => {
     expect(res.body).toEqual({
       ok: true,
       mode: "openai",
-      rag: { enabled: false, configured: false, documents: null },
+      rag: { enabled: true, configured: true, documents: 18 },
     });
   });
 

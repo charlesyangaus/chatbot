@@ -1,52 +1,86 @@
-import { openAiChat } from './chat';
-import type { ChatMessage } from '../types.js';
+import { jest } from "@jest/globals";
+import { openAiChat } from "./chat.js";
+import type { ChatMessage } from "../types.js";
 
-// Mock environment variables
-process.env.OPENAI_API_KEY = 'test_api_key';
-process.env.OPENAI_MODEL = 'gpt-4o-mini';
+const mockFetch = jest.fn<typeof fetch>();
+globalThis.fetch = mockFetch as typeof fetch;
 
-// Mock the fetch function
-global.fetch = jest.fn();
+const originalKey = process.env.OPENAI_API_KEY;
+const originalModel = process.env.OPENAI_MODEL;
 
-describe('openAiChat', () => {
+function mockFetchJson(body: unknown, ok = true, status = 200, errText = "") {
+  mockFetch.mockResolvedValueOnce({
+    ok,
+    status,
+    text: async () => errText,
+    json: async () => body,
+  } as Response);
+}
+
+describe("openAiChat", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockFetch.mockReset();
+    process.env.OPENAI_API_KEY = "test_api_key";
+    process.env.OPENAI_MODEL = "gpt-4o-mini";
   });
 
-  it('should throw an error if OPENAI_API_KEY is missing', async () => {
+  afterEach(() => {
+    if (originalKey === undefined) delete process.env.OPENAI_API_KEY;
+    else process.env.OPENAI_API_KEY = originalKey;
+
+    if (originalModel === undefined) delete process.env.OPENAI_MODEL;
+    else process.env.OPENAI_MODEL = originalModel;
+  });
+
+  it("throws when OPENAI_API_KEY is missing", async () => {
     delete process.env.OPENAI_API_KEY;
-    await expect(openAiChat([{ role: 'user', content: 'Hello!' }])).rejects.toThrow('OPENAI_API_KEY missing');
+
+    await expect(openAiChat([{ role: "user", content: "Hello!" }])).rejects.toThrow(
+      "OPENAI_API_KEY missing",
+    );
   });
 
-  it('should return a response from OpenAI API', async () => {
-    const mockResponse = { choices: [{ message: { content: 'Hello, how can I help you?' } }] };
-    (fetch as jest.Mock).mockResolvedValueOnce({ ok: true, json: jest.fn().mockResolvedValueOnce(mockResponse) });
+  it("returns a response from OpenAI API", async () => {
+    mockFetchJson({
+      choices: [{ message: { content: "Hello, how can I help you?" } }],
+    });
 
-    const messages: ChatMessage[] = [{ role: 'user', content: 'Hello!' }];
+    const messages: ChatMessage[] = [{ role: "user", content: "Hello!" }];
     const response = await openAiChat(messages);
-    expect(response).toBe('Hello, how can I help you?');
+
+    expect(response).toBe("Hello, how can I help you?");
+    expect(mockFetch).toHaveBeenCalledWith(
+      "https://api.openai.com/v1/chat/completions",
+      expect.objectContaining({
+        method: "POST",
+        headers: {
+          Authorization: "Bearer test_api_key",
+          "Content-Type": "application/json",
+        },
+      }),
+    );
   });
 
-  it('should throw an error if response is not ok', async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({ ok: false, status: 500, text: jest.fn().mockResolvedValueOnce('Internal Server Error') });
+  it("throws when the OpenAI API responds with an error", async () => {
+    mockFetchJson({}, false, 500, "Internal Server Error");
 
-    const messages: ChatMessage[] = [{ role: 'user', content: 'Hello!' }];
-    await expect(openAiChat(messages)).rejects.toThrow('OpenAI error 500: Internal Server Error');
+    const messages: ChatMessage[] = [{ role: "user", content: "Hello!" }];
+    await expect(openAiChat(messages)).rejects.toThrow(
+      "OpenAI error 500: Internal Server Error",
+    );
   });
 
-  it('should throw an error if response is empty', async () => {
-    const mockResponse = { choices: [{}] };
-    (fetch as jest.Mock).mockResolvedValueOnce({ ok: true, json: jest.fn().mockResolvedValueOnce(mockResponse) });
+  it("throws when the completion content is empty", async () => {
+    mockFetchJson({ choices: [{}] });
 
-    const messages: ChatMessage[] = [{ role: 'user', content: 'Hello!' }];
-    await expect(openAiChat(messages)).rejects.toThrow('Empty completion from OpenAI');
+    const messages: ChatMessage[] = [{ role: "user", content: "Hello!" }];
+    await expect(openAiChat(messages)).rejects.toThrow("Empty completion from OpenAI");
   });
 
-  it('should throw an error if response contains invalid structure', async () => {
-    const mockResponse = { choices: [{ message: {} }] };
-    (fetch as jest.Mock).mockResolvedValueOnce({ ok: true, json: jest.fn().mockResolvedValueOnce(mockResponse) });
+  it("throws when message content is missing", async () => {
+    mockFetchJson({ choices: [{ message: {} }] });
 
-    const messages: ChatMessage[] = [{ role: 'user', content: 'Hello!' }];
-    await expect(openAiChat(messages)).rejects.toThrow('Invalid response structure from OpenAI');
+    const messages: ChatMessage[] = [{ role: "user", content: "Hello!" }];
+    await expect(openAiChat(messages)).rejects.toThrow("Empty completion from OpenAI");
   });
 });

@@ -66,6 +66,7 @@ export async function runOpenAIAgentLoop(options: {
       throw new Error("OpenAI returned no message");
     }
 
+    console.error(`[openai-loop] message: ${JSON.stringify(message)}`);
     messages.push(message);
 
     const toolCalls = message.tool_calls ?? [];

@@ -5,10 +5,10 @@ type EmbeddingResponse = {
 };
 
 export async function embedTexts(texts: string[]): Promise<number[][]> {
+  if (texts.length === 0) return [];
+
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error("OPENAI_API_KEY missing (required for embeddings)");
-
-  if (texts.length === 0) return [];
 
   const res = await fetch("https://api.openai.com/v1/embeddings", {
     method: "POST",
