@@ -10,7 +10,8 @@
     "docker:down": "docker compose down",
     "test": "npm run test -w server && npm run test -w client",
     "mcp:git:build": "npm run build -w mcp-git",
-    "mcp:git:dev": "npm run dev -w mcp-git"
+    "mcp:git:dev": "npm run dev -w mcp-git",
+    "mcp:git:run": "npm run build -w mcp-git && npm run run -w mcp-git --"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

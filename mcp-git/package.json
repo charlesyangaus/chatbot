@@ -3,15 +3,19 @@
   "private": true,
   "type": "module",
   "bin": {
-    "mcp-git": "./dist/index.js"
+    "mcp-git": "./dist/index.js",
+    "mcp-git-run": "./dist/cli.js"
   },
   "scripts": {
     "dev": "tsx src/index.ts",
+    "dev:run": "tsx src/cli.ts run",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "run": "node dist/cli.js run"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.11.0",
+    "dotenv": "^16.4.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {

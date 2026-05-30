@@ -39,6 +39,40 @@ Cursor should pick up the server automatically via `.cursor/mcp.json`:
 
 If tools do not appear, reload MCP servers in Cursor (or restart Cursor) after building.
 
+## CLI (`mcp-git run`)
+
+Run a full coding task from the terminal. The CLI:
+
+1. Spawns the **git MCP server** as a subprocess
+2. Runs an **OpenAI agent** with git MCP tools plus local `read_file` / `write_file` / `run_command` tools
+3. **Stops the MCP server** when finished
+
+From the repository root (requires `OPENAI_API_KEY` in `server/.env`):
+
+`npm run run -w mcp-git` runs with cwd inside `mcp-git/`; the CLI walks up to the monorepo root to load `server/.env` automatically.
+
+```bash
+npm run mcp:git:build
+
+# One-shot requirement
+npm run mcp:git:run -- "Add unit tests for server/src/rag/embeddings.ts and create a PR"
+
+# Or after npm link / npx
+npx mcp-git-run "Add unit tests for server/src/rag/embeddings.ts and create a PR"
+
+# Interactive prompt
+npm run run -w mcp-git --
+
+# Stdin
+echo "Add tests for chunk.ts and open a PR" | npm run run -w mcp-git --
+```
+
+Optional: `OPENAI_MODEL` (default `gpt-4o-mini`).
+
+Progress logs go to **stderr**; the final agent summary is printed on **stdout**.
+
+This is **not** the same as `npm run mcp:git:dev` — the dev script only starts the MCP server and waits for protocol messages; it does not accept natural-language tasks.
+
 ## Tools
 
 ### Low-level git tools
@@ -121,9 +155,16 @@ npm run mcp:git:dev
 ```
 mcp-git/
 ├── src/
-│   ├── index.ts              # Server bootstrap + stdio transport
+│   ├── index.ts              # MCP server (stdio) for Cursor
+│   ├── cli.ts                # CLI entry: mcp-git run
 │   ├── register-tools.ts     # Tool schemas and handlers
 │   ├── tool-response.ts      # MCP response helpers
+│   ├── agent/                # OpenAI + MCP client for CLI
+│   │   ├── run.ts
+│   │   ├── git-mcp-session.ts
+│   │   ├── openai-loop.ts
+│   │   ├── local-tools.ts
+│   │   └── prompt.ts
 │   └── git/
 │       ├── run.ts            # git / gh command helpers
 │       ├── branch-name.ts    # Branch slug utilities
@@ -138,6 +179,6 @@ mcp-git/
 
 ## Notes
 
-- The server does **not** edit files — the agent implements code changes via Cursor, then uses MCP tools for git and GitHub steps.
+- The MCP server alone does **not** edit files — use Cursor chat or `mcp-git run` for code changes.
 - Do not commit secrets (`.env`, API keys, etc.).
 - Logs and errors should go to **stderr**; stdout is reserved for the MCP protocol.
