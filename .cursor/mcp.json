@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "git": {
+      "command": "node",
+      "args": ["${workspaceFolder}/mcp-git/dist/index.js"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}
