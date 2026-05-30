@@ -15,6 +15,8 @@ CRITICAL:
 - Prefer git MCP tools over shell git/gh.
 - Do not commit secrets.
 - Fix failing tests before finish_coded_change_and_pr.
+- If there is nothing new to commit (changes already committed), finish_coded_change_and_pr still opens the PR using the current branch HEAD.
+- Do not call push_branch or commit_changes separately after finish_coded_change_and_pr.
 - Final message must include branch name, commit hash, and PR URL from finish_coded_change_and_pr.`;
 
 export async function loadSystemPrompt(repoRoot: string): Promise<string> {

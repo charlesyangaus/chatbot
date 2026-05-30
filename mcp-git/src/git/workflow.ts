@@ -35,6 +35,7 @@ export type FinishCodedChangeAndPrResult = {
   commitHash: string;
   prUrl: string;
   repoPath: string;
+  committed: boolean;
 };
 
 export async function startCodedChange(
@@ -81,6 +82,7 @@ export async function finishCodedChangeAndPr(
     title: options.prTitle,
     body: options.prBody,
     baseBranch: options.baseBranch,
+    headBranch: commit.branch,
     draft: options.draft,
     push: true,
     repoPath,
@@ -91,5 +93,6 @@ export async function finishCodedChangeAndPr(
     commitHash: commit.commitHash,
     prUrl: pr.url,
     repoPath,
+    committed: commit.committed,
   };
 }

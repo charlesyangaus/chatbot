@@ -10,8 +10,14 @@ export type CommitChangesResult = {
   branch: string;
   commitHash: string;
   files: string[];
+  committed: boolean;
   repoPath: string;
 };
+
+async function hasStagedChanges(repoPath: string): Promise<boolean> {
+  const status = await git(["status", "--porcelain"], repoPath);
+  return status.length > 0;
+}
 
 export async function commitChanges(
   options: CommitChangesOptions,
@@ -24,9 +30,15 @@ export async function commitChanges(
 
   await git(["add", "--", ...files], repoPath);
 
-  const status = await git(["status", "--porcelain"], repoPath);
-  if (!status) {
-    throw new Error("No changes to commit.");
+  if (!(await hasStagedChanges(repoPath))) {
+    const commitHash = await git(["rev-parse", "HEAD"], repoPath);
+    return {
+      branch,
+      commitHash,
+      files,
+      committed: false,
+      repoPath,
+    };
   }
 
   await git(["commit", "-m", options.message], repoPath);
@@ -36,6 +48,7 @@ export async function commitChanges(
     branch,
     commitHash,
     files,
+    committed: true,
     repoPath,
   };
 }
