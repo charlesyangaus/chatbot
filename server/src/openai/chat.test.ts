@@ -1,9 +1,15 @@
-import { jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 import { openAiChat } from "./chat.js";
 import type { ChatMessage } from "../types.js";
 
 const mockFetch = jest.fn<typeof fetch>();
-globalThis.fetch = mockFetch as typeof fetch;
 
 const originalKey = process.env.OPENAI_API_KEY;
 const originalModel = process.env.OPENAI_MODEL;
@@ -19,6 +25,7 @@ function mockFetchJson(body: unknown, ok = true, status = 200, errText = "") {
 
 describe("openAiChat", () => {
   beforeEach(() => {
+    globalThis.fetch = mockFetch as typeof fetch;
     mockFetch.mockReset();
     process.env.OPENAI_API_KEY = "test_api_key";
     process.env.OPENAI_MODEL = "gpt-4o-mini";
