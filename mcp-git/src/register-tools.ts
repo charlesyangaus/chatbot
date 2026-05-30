@@ -223,16 +223,16 @@ export function registerGitTools(server: McpServer): void {
     "finish_coded_change_and_pr",
     {
       description:
-        "Finish a coded-change workflow: commit staged changes, push, and open a GitHub PR. Call after implementing and testing the change.",
+        "Finish a coded-change workflow: commit any staged changes (skip if already committed), push, and open a GitHub PR.",
       inputSchema: finishCodedChangeAndPrSchema,
     },
     async (args) => {
       try {
         const result = await finishCodedChangeAndPr(args);
-        return successResult(
-          `Committed ${result.commitHash.slice(0, 7)} and opened PR: ${result.prUrl}`,
-          result,
-        );
+        const commitNote = result.committed
+          ? `Committed ${result.commitHash.slice(0, 7)} and`
+          : `Using existing commit ${result.commitHash.slice(0, 7)},`;
+        return successResult(`${commitNote} opened PR: ${result.prUrl}`, result);
       } catch (error) {
         return errorResult(error);
       }

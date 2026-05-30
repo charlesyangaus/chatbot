@@ -61,14 +61,34 @@ export async function createPullRequest(
     args.push("--draft");
   }
 
-  const output = await gh(args, repoPath);
-  const url = output.split("\n").find((line) => line.startsWith("http")) ?? output;
+  try {
+    const output = await gh(args, repoPath);
+    const url = output.split("\n").find((line) => line.startsWith("http")) ?? output;
 
-  return {
-    url,
-    title: options.title,
-    baseBranch,
-    headBranch,
-    repoPath,
-  };
+    return {
+      url,
+      title: options.title,
+      baseBranch,
+      headBranch,
+      repoPath,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.includes("already exists")) {
+      throw error;
+    }
+
+    const existingUrl = await gh(
+      ["pr", "view", headBranch, "--json", "url", "--jq", ".url"],
+      repoPath,
+    );
+
+    return {
+      url: existingUrl.trim(),
+      title: options.title,
+      baseBranch,
+      headBranch,
+      repoPath,
+    };
+  }
 }
